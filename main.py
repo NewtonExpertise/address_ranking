@@ -1,8 +1,26 @@
 import math
+import logging
+import configparser
+import shutil
+from datetime import datetime
 from pathlib import Path
 from pdf_to_image import pdf_to_image
 from ocerize import ocr_extract_and_order_words
 
+
+logging.basicConfig(
+    filename= f"./log/traces.log",
+    filemode="w",
+    format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
+    level="INFO",
+    encoding="cp1252"
+)
+
+config = configparser.ConfigParser()
+config.read("config.ini", encoding='utf-8')
+PDF_DIR = Path(config['PATHS']['PDF_DIR'])
+ADR_DIR = Path(config['PATHS']['ADR_DIR'])
+LOG_DIR = Path(config['PATHS']['LOG_DIR'])
 
 def calc_distance(coord1, coord2):
     """
@@ -64,32 +82,57 @@ def calc_match_ratio(candidates: list, trial: list) -> float:
         ratio = len(matches) / len(trial)
     return ratio
 
-def run(pdf_folder: Path, address_folder: Path) -> None:
+def rename_winner(pdf: Path, nameparts: list) -> bool:
+    """
+    Renomme le fichier en fonction des élements fournis dans nameparts
+    """
+    dossier, code, vendor = nameparts
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    filename = f"{vendor} {code} {timestamp}.pdf"
+    newpath = pdf.parent / filename
+    try:
+        shutil.move(pdf, newpath)
+        success = True
+    except:
+        logging.error("Impossible de renommer le fichier")
+        filename = ""
+    return filename
 
-    address_db = build_address_book(address_folder)
+#####################################################################
 
-    for pdf in pdf_folder.iterdir():
+address_db = build_address_book(ADR_DIR)
 
-        if not pdf.name.endswith(".pdf"):
-            continue
+for pdf in PDF_DIR.iterdir():
+    print(f"============{pdf.name}==================")
 
-        ranking = []
-        
-        image = pdf_to_image(pdf)
-        candidates = ocr_extract_and_order_words(image)
-        
-        for address in address_db:
-            trial = address[1]
-            ratio = calc_match_ratio(candidates, trial)
-            ranking.append((ratio, address[0]))
+    if not pdf.name.endswith(".pdf"):
+        continue
 
-        print("#### RANKING ####")
-        for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
-            print(f"{i}. {name} ({ratio})")
+    ranking = []
+    
+    image = pdf_to_image(pdf)
+    candidates = ocr_extract_and_order_words(image)
+    
+    for address in address_db:
+        trial = address[1]
+        ratio = calc_match_ratio(candidates, trial)
+        ranking.append((ratio, address[0]))
 
-if __name__ == "__main__":
+    
+    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
+        print(f"{i}. {name} ({ratio})")
+    
+    for ratio, name in ranking:
+        if ratio >= 1.:
+            winner = sorted(ranking, reverse=True)[0]
+            dossier, code, vendor = name.split("_")
+            break
+    x = rename_winner(pdf, [dossier, code, vendor])
+    if x:
+        logging.info("x")
 
-    pdf = Path(r"V:\Informatique\Dev\address_ranking\pdf")
-    adresses = Path(r"V:\Informatique\Dev\address_ranking\adresses")
 
-    run(pdf, adresses)
+    print("#### RANKING ####")
+
+
+
