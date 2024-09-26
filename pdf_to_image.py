@@ -13,6 +13,7 @@ def pdf_to_image(pdf_path: Path, keep_png: bool = False) -> Image:
     
     parameters :
     - pdf_path : chemin du fichier pdf au format pathlib.Path
+    - keep_png : supprimer ou non le fichier PNG créé
 
     returns :
     - Image : png au format pillow Image
