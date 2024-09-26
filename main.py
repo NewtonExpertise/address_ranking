@@ -119,8 +119,6 @@ for pdf in PDF_DIR.iterdir():
         ranking.append((ratio, address[0]))
 
     
-    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
-        print(f"{i}. {name} ({ratio})")
     
     for ratio, name in ranking:
         if ratio >= 1.:
@@ -133,6 +131,8 @@ for pdf in PDF_DIR.iterdir():
 
 
     print("#### RANKING ####")
+    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
+        print(f"{i}. {name} ({ratio})")
 
 
 
