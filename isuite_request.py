@@ -5,9 +5,9 @@ import logging
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 class ISuiteRequest():
-    def __init__(self, url, username, password):
+    def __init__(self, url: str, username: str, password: str) -> None:
         """
-        Première connexion pour obtenir le UUID
+        Dès qu'une nouvelle instance est créée on se conencte au portail
         """
         self.url = url
         self.conx_ok = False
@@ -28,10 +28,8 @@ class ISuiteRequest():
         if r.status_code == 200:
             self.uuid = r.json()["UUID"]
             self.conx_ok = True
-        else:
-            logging.debug(r.json())
         
-    def select_dossier(self, code_dossier):
+    def select_dossier(self, code_dossier: str) -> None:
         """
         Sélection du dossier
         """
@@ -45,10 +43,12 @@ class ISuiteRequest():
         r = requests.post(url, headers=headers)
         if r.status_code == 200:
             self.select = True
-        else:
-            logging.error("Echec sélection dossier")
 
-    def push_paniere(self, file, doc_name):
+    def push_paniere(self, file: bytes, doc_name: str) -> None:
+        """
+        Envoi d'un document dans la panière. Un dossier devra être sélectionné avant
+        avec select_dossier. Type : 1 correspond au type Achat
+        """
 
         headers = {
             "CNX" : "CNX",
@@ -59,11 +59,7 @@ class ISuiteRequest():
         url = f"{self.url}/panieres/documents"
         r = requests.post(url, headers=headers, files=files, data=form)
         if r.status_code in (200, 201):
-            self.depot = True
-        else:
-            logging.error("Echec envoi document")
-            print(r.json())
-        
+            self.depot = True     
 
 
 if __name__ == "__main__":
@@ -71,14 +67,17 @@ if __name__ == "__main__":
     username = "nro@newtonexpertise.com"
     password = "vocifere1414"
 
-    doc = r"C:\Users\nicolas\Documents\alien.pdf"
+    doc = r"C:\Users\nicolas\Documents\FACTURE TYPE WD NICOLAS ROLLET 290124 au 010224 Garden BKG.pdf"
 
-    acd = API_ACD(url, username, password) 
-    print(acd.uuid) 
-    if acd.conx_ok:
-        acd.select_dossier("FORMACLI")
-        if acd.select:
-            print("dossier sélectionné")
+    isuite = ISuiteRequest(url, username, password) 
+
+    if not isuite.conx_ok:
+        print("Echec authentification")
+
+    isuite.select_dossier("FORMACLI")
+
+    if not isuite.select:
+        print("Echec sélection dossier")
     
     with open(doc, "rb") as f:
-        acd.push_paniere(f, "alien.pdf")
+        isuite.push_paniere(f, "facture.pdf")

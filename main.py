@@ -1,3 +1,4 @@
+import os
 import math
 import logging
 import configparser
@@ -6,21 +7,31 @@ from datetime import datetime
 from pathlib import Path
 from pdf_to_image import pdf_to_image
 from ocerize import ocr_extract_and_order_words
+from isuite_request import ISuiteRequest
 
 
 logging.basicConfig(
-    filename= f"./log/traces.log",
-    filemode="w",
     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
     level="INFO",
     encoding="cp1252"
 )
+# logging.basicConfig(
+#     filename= f"./log/traces.log",
+#     filemode="w",
+#     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
+#     level="INFO",
+#     encoding="cp1252"
+# )
+
 
 config = configparser.ConfigParser()
 config.read("config.ini", encoding='utf-8')
 PDF_DIR = Path(config['PATHS']['PDF_DIR'])
 ADR_DIR = Path(config['PATHS']['ADR_DIR'])
 LOG_DIR = Path(config['PATHS']['LOG_DIR'])
+IS_USR = config['ISUITE']['USERNAME']
+IS_PWD = config['ISUITE']['PASSWORD']
+IS_URL = config['ISUITE']['URL']
 
 def calc_distance(coord1, coord2):
     """
@@ -86,17 +97,18 @@ def rename_winner(pdf: Path, nameparts: list) -> bool:
     """
     Renomme le fichier en fonction des élements fournis dans nameparts
     """
-    dossier, code, vendor = nameparts
+    status = False
     timestamp = datetime.now().strftime("%Y-%m-%d")
-    filename = f"{vendor} {code} {timestamp}.pdf"
+    nameparts += timestamp
+    filename = "_".join(nameparts) + ".pdf"
     newpath = pdf.parent / filename
     try:
         shutil.move(pdf, newpath)
-        success = True
+        status = True
     except:
         logging.error("Impossible de renommer le fichier")
         filename = ""
-    return filename
+    return status
 
 #####################################################################
 
@@ -123,14 +135,23 @@ for pdf in PDF_DIR.iterdir():
             winner = sorted(ranking, reverse=True)[0]
             dossier, code, vendor = name.split("_")
             break
-    x = rename_winner(pdf, [dossier, code, vendor])
-    if x:
-        logging.info("x")
 
-
-    print("#### RANKING ####")
+    logging.info("#### RANKING ####")
     for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
-        print(f"{i}. {name} ({ratio})")
+        logging.info(f"{i}. {name} ({ratio})")
 
+    # renamed_file = rename_winner(pdf, [code, dossier, vendor])
+
+    # isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
+    # isuite.select_dossier("FORMACLI")
+    # with open(renamed_file, "rb") as f:
+    #     isuite.push_paniere(f, f"{vendor}-{dossier}.pdf")
+    # if isuite.depot:
+    #     logging.info("Envoi panière OK")
+    #     # os.remove(renamed_file)
+    # else:
+    #     logging.error("Echec envoi panière")
+    #     logging.error()
+    #     shutil.move(renamed_file, PDF_DIR.parent / "echec" / pdf.name)
 
 
