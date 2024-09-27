@@ -4,7 +4,7 @@ import logging
 
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
-class API_ACD():
+class ISuiteRequest():
     def __init__(self, url, username, password):
         """
         Première connexion pour obtenir le UUID
@@ -12,6 +12,7 @@ class API_ACD():
         self.url = url
         self.conx_ok = False
         self.select = False
+        self.depot = False
 
         headers = {
             "Accept" : "application/json",
@@ -27,9 +28,8 @@ class API_ACD():
         if r.status_code == 200:
             self.uuid = r.json()["UUID"]
             self.conx_ok = True
-            logging.info("Authentification OK")
         else:
-            logging.error("connection failed")
+            logging.debug(r.json())
         
     def select_dossier(self, code_dossier):
         """
@@ -59,7 +59,7 @@ class API_ACD():
         url = f"{self.url}/panieres/documents"
         r = requests.post(url, headers=headers, files=files, data=form)
         if r.status_code in (200, 201):
-            self.select = True
+            self.depot = True
         else:
             logging.error("Echec envoi document")
             print(r.json())
@@ -82,12 +82,3 @@ if __name__ == "__main__":
     
     with open(doc, "rb") as f:
         acd.push_paniere(f, "alien.pdf")
-
-    # acd.push_doc_paniere(acd.uuid, doc, 1, )
-
-    
-    # curl -X POST --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' --header 'CNX: CNX' --header 'UUID: 86PKH1K00AL0SSETC3287F2SIPT45N' -F type=0 -F   'http://tunis.axe.lan/iSuiteExpert/api/v1/panieres/documents'
-    
-
-
-# {"document":{"id":0,"nom":"BRINKS-2024-09-01--319,01 E","type":{"idId":1,"sLibelle":"Fact. Achat","bDefaut":true,"inbDoc":0,"iTailleDocMax":20971520,"isFamilleFacture":true,"famille":"_TYPE_FACTURES_ACHAT","extensionsAutorisees":"","documents":[],"iTailleDocMaxFormatted":"20 Mo","extensionsAutoriseesArray":[]},"extension":"PDF","commentaire":"bouh!","factureunique":false,"datedepot":false},"forceDoublon":false}
