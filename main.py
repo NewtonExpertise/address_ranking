@@ -117,8 +117,6 @@ for pdf in PDF_DIR.iterdir():
         trial = address[1]
         ratio = calc_match_ratio(candidates, trial)
         ranking.append((ratio, address[0]))
-
-    
     
     for ratio, name in ranking:
         if ratio >= 1.:

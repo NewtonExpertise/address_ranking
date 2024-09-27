@@ -163,3 +163,4 @@ cython_debug/
 
 adresses/
 pdftopng.exe
+config.ini
