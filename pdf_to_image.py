@@ -58,11 +58,5 @@ def pdf_to_image(pdf_path: Path, keep_png: bool = False) -> Image:
 
 if __name__ == "__main__":
 
-    # # pdf = r"\\kiev\Qappli\Quadra\DATABASE\cpta\DC\000354\Images\000354_1475.pdf"
-    # pdf1 = Path(r"C:\temp\ML DATA SET\pdf\PLUXEE\PLUXEE DBLG (3).pdf")
-    # pdf1 = Path(r"V:\Informatique\Dev\doc_pipe\pdf_plaga_pluxee\COM PLUXEE-2024-01-12--19,07 E.pdf")
     pdf1 = Path(r"C:\temp\ML DATA SET\pdf\Misc\small\EDENRED ALKARIC (6).pdf")
     img = pdf_to_image(pdf1, keep_png=True)
-    # img.save("test.png")
-    # pdf = r"V:\Informatique\Dev\doc_pipe\pdf_plaga_pluxee\COM PLUXEE-2024-01-12--19,07 E.pdf"
-    # ref = r"V:\Informatique\Dev\doc_pipe\references\pluxee\_facture.png"

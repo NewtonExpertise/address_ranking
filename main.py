@@ -10,18 +10,18 @@ from ocerize import ocr_extract_and_order_words
 from isuite_request import ISuiteRequest
 
 
-logging.basicConfig(
-    format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
-    level="INFO",
-    encoding="cp1252"
-)
 # logging.basicConfig(
-#     filename= f"./log/traces.log",
-#     filemode="w",
 #     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
 #     level="INFO",
 #     encoding="cp1252"
 # )
+logging.basicConfig(
+    filename= f"./log/traces.log",
+    filemode="a",
+    format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
+    level="INFO",
+    encoding="cp1252"
+)
 
 
 config = configparser.ConfigParser()
@@ -97,30 +97,47 @@ def rename_winner(pdf: Path, nameparts: list) -> bool:
     """
     Renomme le fichier en fonction des élements fournis dans nameparts
     """
-    status = False
     timestamp = datetime.now().strftime("%Y-%m-%d")
-    nameparts += timestamp
+    nameparts += [timestamp]
     filename = "_".join(nameparts) + ".pdf"
     newpath = pdf.parent / filename
     try:
         shutil.move(pdf, newpath)
-        status = True
     except:
         logging.error("Impossible de renommer le fichier")
-        filename = ""
-    return status
+        newpath = ""
+    return newpath
+
+def trace_envoi_paniere(nameparts: list) -> None:
+    timestamp = [datetime.now().strftime("%Y-%m-%d %H:%M")]
+    timestamp += nameparts
+    line = " ".join(timestamp)
+    logfile = LOG_DIR / "envois_paniere.log"
+    try:
+        with open(logfile, "a") as f:
+            f.write(line)
+            f.write("\n")
+    except IOError as e:
+        logging.error(f"{logfile} inaccessible")
+
 
 #####################################################################
 
 address_db = build_address_book(ADR_DIR)
 
+if not address_db:
+    logging.critical("Base de données adresses vide !")
+    exit()
+
 for pdf in PDF_DIR.iterdir():
-    print(f"============{pdf.name}==================")
 
     if not pdf.name.endswith(".pdf"):
         continue
 
+    logging.info(f"============{pdf.name}==================")
+
     ranking = []
+    winner = None
     
     image = pdf_to_image(pdf)
     candidates = ocr_extract_and_order_words(image)
@@ -137,21 +154,30 @@ for pdf in PDF_DIR.iterdir():
             break
 
     logging.info("#### RANKING ####")
-    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True), start=1):
+    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True)[:5], start=1):
         logging.info(f"{i}. {name} ({ratio})")
+    
+    if not winner:
+        logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
+        shutil.move(pdf, PDF_DIR.parent / "echec" / pdf.name)
+        continue
 
-    # renamed_file = rename_winner(pdf, [code, dossier, vendor])
+    isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
+    isuite.select_dossier("FORMACLI")
 
-    # isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
-    # isuite.select_dossier("FORMACLI")
-    # with open(renamed_file, "rb") as f:
-    #     isuite.push_paniere(f, f"{vendor}-{dossier}.pdf")
-    # if isuite.depot:
-    #     logging.info("Envoi panière OK")
-    #     # os.remove(renamed_file)
-    # else:
-    #     logging.error("Echec envoi panière")
-    #     logging.error()
-    #     shutil.move(renamed_file, PDF_DIR.parent / "echec" / pdf.name)
+    if not isuite.select:
+        logging.error(f"Echec connexion {isuite.response}")
+
+    with open(pdf, "rb") as f:
+        isuite.push_paniere(f, f"{vendor}-{dossier}.pdf")
+
+    if isuite.depot:
+        logging.info("Envoi panière OK")
+        trace_envoi_paniere([vendor, dossier, pdf.name])
+        shutil.move(pdf, PDF_DIR / "envoyes" / pdf.name)
+    else:
+        logging.error("Echec envoi panière")
+        logging.error()
+        shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
 
 

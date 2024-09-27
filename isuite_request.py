@@ -1,8 +1,5 @@
-import os
 import requests
 import logging
-
-logging.basicConfig(encoding='utf-8', level=logging.INFO)
 
 class ISuiteRequest():
     def __init__(self, url: str, username: str, password: str) -> None:
@@ -13,6 +10,7 @@ class ISuiteRequest():
         self.conx_ok = False
         self.select = False
         self.depot = False
+        self.response = ""
 
         headers = {
             "Accept" : "application/json",
@@ -25,6 +23,7 @@ class ISuiteRequest():
         }
         url = f"{self.url}/authentification"
         r = requests.post(url, headers=headers, json=payload)
+        self.response = r.json()
         if r.status_code == 200:
             self.uuid = r.json()["UUID"]
             self.conx_ok = True
@@ -41,6 +40,7 @@ class ISuiteRequest():
         }
         url = f"{self.url}/sessions/dossier/{code_dossier}"
         r = requests.post(url, headers=headers)
+        self.response = r.json()            
         if r.status_code == 200:
             self.select = True
 
@@ -58,8 +58,9 @@ class ISuiteRequest():
         form = {"type" : 1}
         url = f"{self.url}/panieres/documents"
         r = requests.post(url, headers=headers, files=files, data=form)
+        self.response = r.json()                
         if r.status_code in (200, 201):
-            self.depot = True     
+            self.depot = True 
 
 
 if __name__ == "__main__":

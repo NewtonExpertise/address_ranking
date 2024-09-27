@@ -49,11 +49,3 @@ def ocr_extract_and_order_words(image: Image) -> list:
 
     return wordlist
 
-
-
-# if __name__ == "__main__":
-#     chemin = r"V:\Informatique\Dev\ancv_matrix\temp_bdo.png"
-#     # chemin = r"V:\Informatique\Dev\ancv_matrix\temp_1.png"
-#     img = Image.open(chemin)
-#     # [print(x) for x in ocr_extract_words_segm(img)]
-#     [print(x) for x in ocr_extract_and_order_words(img)]
