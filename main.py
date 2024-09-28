@@ -159,25 +159,27 @@ for pdf in PDF_DIR.iterdir():
     
     if not winner:
         logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
-        shutil.move(pdf, PDF_DIR.parent / "echec" / pdf.name)
+        shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
         continue
 
-    isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
-    isuite.select_dossier("FORMACLI")
+    #### Envoi paniere ################################
 
-    if not isuite.select:
-        logging.error(f"Echec connexion {isuite.response}")
+    # isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
+    # isuite.select_dossier("FORMACLI")
 
-    with open(pdf, "rb") as f:
-        isuite.push_paniere(f, f"{vendor}-{dossier}.pdf")
+    # if not isuite.select:
+    #     logging.error(f"Echec connexion {isuite.response}")
 
-    if isuite.depot:
-        logging.info("Envoi panière OK")
-        trace_envoi_paniere([vendor, dossier, pdf.name])
-        shutil.move(pdf, PDF_DIR / "envoyes" / pdf.name)
-    else:
-        logging.error("Echec envoi panière")
-        logging.error()
-        shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
+    # with open(pdf, "rb") as f:
+    #     isuite.push_paniere(f, f"{vendor}-{dossier}.pdf")
+
+    # if isuite.depot:
+    #     logging.info("Envoi panière OK")
+    #     trace_envoi_paniere([vendor, dossier, pdf.name])
+    #     shutil.move(pdf, PDF_DIR / "envoyes" / pdf.name)
+    # else:
+    #     logging.error("Echec envoi panière")
+    #     logging.error()
+    #     shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
 
 
