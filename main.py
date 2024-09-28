@@ -161,6 +161,8 @@ for pdf in PDF_DIR.iterdir():
         logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
         shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
         continue
+    else:
+        shutil.move(pdf, PDF_DIR / "envoyes" / f"{vendor}-{dossier}.pdf")
 
     #### Envoi paniere ################################
 
