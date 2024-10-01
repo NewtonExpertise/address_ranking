@@ -162,7 +162,7 @@ cython_debug/
 #.idea/
 
 adresses/
-log/
+traces.log
 pdftopng.exe
 config.ini
 xpdf-t1fonts/
