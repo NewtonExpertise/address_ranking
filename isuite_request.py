@@ -63,22 +63,22 @@ class ISuiteRequest():
             self.depot = True 
 
 
-if __name__ == "__main__":
-    url = 'https://comptoir.newtonexpertise.com/iSuiteExpert/api/v1'
-    username = "nro@newtonexpertise.com"
-    password = "vocifere1414"
+# if __name__ == "__main__":
+#     url = 'https://comptoir.newtonexpertise.com/iSuiteExpert/api/v1'
+#     username = "nro@newtonexpertise.com"
+#     password = "vocifere1414"
 
-    doc = r"C:\Users\nicolas\Documents\FACTURE TYPE WD NICOLAS ROLLET 290124 au 010224 Garden BKG.pdf"
+#     doc = r"C:\Users\nicolas\Documents\FACTURE TYPE WD NICOLAS ROLLET 290124 au 010224 Garden BKG.pdf"
 
-    isuite = ISuiteRequest(url, username, password) 
+#     isuite = ISuiteRequest(url, username, password) 
 
-    if not isuite.conx_ok:
-        print("Echec authentification")
+#     if not isuite.conx_ok:
+#         print("Echec authentification")
 
-    isuite.select_dossier("FORMACLI")
+#     isuite.select_dossier("FORMACLI")
 
-    if not isuite.select:
-        print("Echec sélection dossier")
+#     if not isuite.select:
+#         print("Echec sélection dossier")
     
-    with open(doc, "rb") as f:
-        isuite.push_paniere(f, "facture.pdf")
+#     with open(doc, "rb") as f:
+#         isuite.push_paniere(f, "facture.pdf")

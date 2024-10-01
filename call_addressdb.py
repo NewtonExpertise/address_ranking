@@ -1,5 +1,4 @@
 import psycopg2
-import configparser
 
 
 
@@ -22,8 +21,6 @@ def call_addressdb(params: dict) -> list:
     conx = psycopg2.connect(**params)
     cursor = conx.cursor()
     sql = "SELECT * from destinations ORDER BY nom "
-    # sql = "SELECT * from destinations ORDER BY nom"
-
     cursor.execute(sql)
     rows = cursor.fetchall()
     for id, code, nom, origine in rows:
@@ -33,32 +30,18 @@ def call_addressdb(params: dict) -> list:
     
     return result
 
-if __name__ == "__main__":
-    config = configparser.ConfigParser()
-    config.read("config.ini", encoding='utf-8')
-    params = {
-        "host" : config['ADRESSESDB']['HOST'],
-        "dbname" : config['ADRESSESDB']['DBNAME'],
-        "user" : config['ADRESSESDB']['USER'],
-        "password" : config['ADRESSESDB']['password']
-    }
+# if __name__ == "__main__":
+# import configparser
+#     config = configparser.ConfigParser()
+#     config.read("config.ini", encoding='utf-8')
+#     params = {
+#         "host" : config['ADRESSESDB']['HOST'],
+#         "dbname" : config['ADRESSESDB']['DBNAME'],
+#         "user" : config['ADRESSESDB']['USER'],
+#         "password" : config['ADRESSESDB']['password']
+#     }
 
-    data = call_addressdb(params)
-    for item in data:
-        print(item)
+#     data = call_addressdb(params)
+#     for item in data:
+#         print(item)
 
-"""
-#     sql = """
-# SELECT 
-#     destinations.code,
-#     destinations.nom,
-#     destinations.origine,
-#     coordonnees.mot,
-#     coordonnees.posx,
-#     coordonnees.posy
-# FROM destinations
-# LEFT JOIN coordonnees 
-#     ON destinations.id = coordonnees.destination
-# ORDER BY destinations.nom, coordonnees.posy, coordonnees.posx
-
-# """
