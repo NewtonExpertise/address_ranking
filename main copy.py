@@ -19,7 +19,7 @@ from call_addressdb import call_addressdb
 
 logging.basicConfig(
     filename= f"./log/traces.log",
-    filemode="a",
+    filemode="w",
     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
     level="INFO",
     encoding="cp1252"
@@ -73,17 +73,18 @@ def build_address_book(source: Path) -> list:
         book.append((name, coord_list))  
     return book  
 
-def calc_match_ratio(candidates: list, trial: list) -> float:
+def calc_match_ratio(candidates: list, trial: list, drift: int = 0) -> float:
     """
     Recherche le nombre de mots communs entre les deux listes
     Vérifie si :
     - chaque mot est présent
-    - si ses coordonnées sont à une distance < à 20 pixels
+    - si ses coordonnées sont à une distance proche de 0
     Si OK, renvoi un ratio de correspondance
 
     Parameters 
     - candidates : mots à évaluer
     - trial: mots de référence
+    - drift : marge d'erreur de la distance en les deux mots (en pixel)
 
     Return
     - float
@@ -94,14 +95,13 @@ def calc_match_ratio(candidates: list, trial: list) -> float:
         for tri_w, tri_x, tri_y in trial:
             if can_w == tri_w:
                 distance = calc_distance((can_x, can_y), (tri_x, tri_y))
-                if distance <= 50:
-                    print("\t", can_w, tri_w, distance)
+                if distance <= drift:
                     matches.append((can_w, can_x, can_y))
     if matches:
         ratio = len(matches) / len(trial)
     return ratio
 
-def propose_winner(candidate_words, address_db):
+def propose_winner(candidate_words: list, address_db: list) -> tuple :
     """
     Va comparer la liste de mots/coordonnées du document analyse avec la base d'adresses
     Le gagnant est celui qui retourne le meilleur ratio calculé par cal_match_ratio, mais
@@ -114,24 +114,33 @@ def propose_winner(candidate_words, address_db):
     ranking = []
     winner = None
 
-    for destination, test_words in address_db:
-        ratio = calc_match_ratio(candidate_words, test_words)
+    for (code, nom, origine), test_words in address_db:
+        ratio = calc_match_ratio(candidate_words, test_words, drift=10)
+        if ratio >= 0.2:
+            ranking.append((ratio, code, nom, origine))
+    if ranking:
+        ranking = sorted(ranking, reverse=True)[:5] 
+        if ranking[0][0] >= 0.9:
+            winner = ranking[0][1:]
+
+    return winner, ranking
 
 
-def rename_winner(pdf: Path, nameparts: list) -> bool:
-    """
-    Renomme le fichier en fonction des élements fournis dans nameparts
-    """
-    timestamp = datetime.now().strftime("%Y-%m-%d")
-    nameparts += [timestamp]
-    filename = "_".join(nameparts) + ".pdf"
-    newpath = pdf.parent / filename
-    try:
-        shutil.move(pdf, newpath)
-    except:
-        logging.error("Impossible de renommer le fichier")
-        newpath = ""
-    return newpath
+
+# def rename_winner(pdf: Path, nameparts: list) -> bool:
+#     """
+#     Renomme le fichier en fonction des élements fournis dans nameparts
+#     """
+#     timestamp = datetime.now().strftime("%Y-%m-%d")
+#     nameparts += [timestamp]
+#     filename = "_".join(nameparts) + ".pdf"
+#     newpath = pdf.parent / filename
+#     try:
+#         shutil.move(pdf, newpath)
+#     except:
+#         logging.error("Impossible de renommer le fichier")
+#         newpath = ""
+#     return newpath
 
 def trace_envoi_paniere(nameparts: list) -> None:
     timestamp = [datetime.now().strftime("%Y-%m-%d %H:%M")]
@@ -149,6 +158,7 @@ def trace_envoi_paniere(nameparts: list) -> None:
 #####################################################################
 
 address_db = call_addressdb(db_params)
+# address_db = build_address_book(ADR_DIR)
 
 if not address_db:
     logging.critical("Base de données adresses vide !")
@@ -160,34 +170,25 @@ for pdf in PDF_DIR.iterdir():
         continue
 
     logging.info(f"============{pdf.name}==================")
-
-    ranking = []
-    winner = None
+    print(f"============{pdf.name}==================")
     
     image = pdf_to_image(pdf)
     candidates = ocr_extract_and_order_words(image)
     
-    for address in address_db:
-        trial = address[1]
-        ratio = calc_match_ratio(candidates, trial)
-        ranking.append((ratio, address[0]))
+    winner, ranking = propose_winner(candidates, address_db)
     
-    for ratio, name in ranking:
-        if ratio >= 1.:
-            winner = sorted(ranking, reverse=True)[0]
-            dossier, code, vendor = name.split("_")
-            break
-
-    logging.info("#### RANKING ####")
-    for i, (ratio, name) in enumerate(sorted(ranking, reverse=True)[:5], start=1):
-        logging.info(f"{i}. {name} ({ratio})")
+    for i, rank in enumerate(ranking, start=1):
+        logging.info(f"{i}, {rank}")
     
     if not winner:
         logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
         shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
         continue
     else:
-        shutil.move(pdf, PDF_DIR / "envoyes" / f"{vendor}-{dossier}.pdf")
+        code, nom, origine = winner
+        timestamp = datetime.now().strftime("%Y%m%d")
+        logging.info(f"dossier proposé : {nom}, ({code})")
+        shutil.move(pdf, PDF_DIR / "envoyes" / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
     #### Envoi paniere ################################
 
