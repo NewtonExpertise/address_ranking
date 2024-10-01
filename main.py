@@ -101,7 +101,7 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
 
 
 config = configparser.ConfigParser()
-config.read("config.ini", encoding='utf-8')
+config.read("config.ini", encoding='ansi')
 PDF_DIR = Path(config['PATHS']['PDF_DIR'])
 IDENT_DIR = Path(config['PATHS']['IDENT_DIR'])
 FAIL_DIR = Path(config['PATHS']['FAIL_DIR'])
