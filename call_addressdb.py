@@ -1,7 +1,6 @@
 import psycopg2
 
 
-
 def call_addressdb(params: dict) -> list:
     """
     Appelle les adresses stockées dans la bdd adresses du serveur vaduz
@@ -29,19 +28,3 @@ def call_addressdb(params: dict) -> list:
         result.append([(code, nom, origine), cursor.fetchall()])
     
     return result
-
-# if __name__ == "__main__":
-# import configparser
-#     config = configparser.ConfigParser()
-#     config.read("config.ini", encoding='utf-8')
-#     params = {
-#         "host" : config['ADRESSESDB']['HOST'],
-#         "dbname" : config['ADRESSESDB']['DBNAME'],
-#         "user" : config['ADRESSESDB']['USER'],
-#         "password" : config['ADRESSESDB']['password']
-#     }
-
-#     data = call_addressdb(params)
-#     for item in data:
-#         print(item)
-

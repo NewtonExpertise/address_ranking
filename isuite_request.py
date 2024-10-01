@@ -1,10 +1,13 @@
 import requests
-import logging
 
 class ISuiteRequest():
+    """
+    Instance de communication avec les API ACD iSuite
+    """
     def __init__(self, url: str, username: str, password: str) -> None:
         """
-        Dès qu'une nouvelle instance est créée on se conencte au portail
+        Dès qu'une nouvelle instance est créée on tente une connexion au portail
+        On récupère le UUID pour autoriser les requêtes suivantes
         """
         self.url = url
         self.conx_ok = False
@@ -30,7 +33,7 @@ class ISuiteRequest():
         
     def select_dossier(self, code_dossier: str) -> None:
         """
-        Sélection du dossier
+        Sélection du dossier. Obligatoire pour agir sur la panière
         """
 
         headers = {
@@ -63,22 +66,4 @@ class ISuiteRequest():
             self.depot = True 
 
 
-# if __name__ == "__main__":
-#     url = 'https://comptoir.newtonexpertise.com/iSuiteExpert/api/v1'
-#     username = "nro@newtonexpertise.com"
-#     password = "vocifere1414"
 
-#     doc = r"C:\Users\nicolas\Documents\FACTURE TYPE WD NICOLAS ROLLET 290124 au 010224 Garden BKG.pdf"
-
-#     isuite = ISuiteRequest(url, username, password) 
-
-#     if not isuite.conx_ok:
-#         print("Echec authentification")
-
-#     isuite.select_dossier("FORMACLI")
-
-#     if not isuite.select:
-#         print("Echec sélection dossier")
-    
-#     with open(doc, "rb") as f:
-#         isuite.push_paniere(f, "facture.pdf")

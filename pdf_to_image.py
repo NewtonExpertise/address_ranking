@@ -42,7 +42,6 @@ def pdf_to_image(pdf_path: Path, keep_png: bool = False) -> Image:
     width, height = img.size
     img = img.crop((0, 0, width, height/3))
     size = (1500, 750)
-    # size = (1000, 500)
     img = img.resize(size)
 
     # cleaning temporary png file

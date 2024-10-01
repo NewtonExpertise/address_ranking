@@ -44,7 +44,7 @@ def ocr_extract_and_order_words(image: Image) -> list:
                 data["left"][i],
                 data["top"][i]
         ))
-
+        # Tri pour conserver l'ordre des mots tels qu'ils apparaissent sur le pdf
         wordlist = sorted(wordlist, key= lambda x : (x[2], x[1]))
 
     return wordlist

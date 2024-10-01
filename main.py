@@ -11,23 +11,10 @@ from isuite_request import ISuiteRequest
 from call_addressdb import call_addressdb
 
 
-# logging.basicConfig(
-#     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
-#     level="INFO",
-#     encoding="cp1252"
-# )
-
-# logging.basicConfig(
-#     filename= f"./log/traces.log",
-#     filemode="w",
-#     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
-#     level="INFO",
-#     encoding="cp1252"
-# )
 formatter = logging.Formatter('%(asctime)s-%(module)s \t %(levelname)s - %(message)s')
 def setup_logger(name, log_file, level=logging.INFO):
     """To setup as many loggers as you want"""
-    handler = logging.FileHandler(log_file)        
+    handler = logging.FileHandler(log_file, mode="w")        
     handler.setFormatter(formatter)
     logger = logging.getLogger(name)
     logger.setLevel(level)
@@ -51,22 +38,6 @@ def calc_distance(coord1, coord2):
     x2, y2 = coord2
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-def build_address_book(source: Path) -> list:
-    """
-    Collecte tous les fichiers .coord de la source pour 
-    retourner la listes des coordonnées de chaque mot
-    """
-    book = []
-    for file in source.iterdir():
-        name = file.stem
-        coord_list = []
-        with open(file, "r") as f:
-            lines = f.readlines()
-        for line in lines:
-            w, x, y = line.strip().split("|")
-            coord_list.append((w, int(x), int(y)))
-        book.append((name, coord_list))  
-    return book  
 
 def calc_match_ratio(candidates: list, trial: list, drift: int = 0) -> float:
     """
@@ -125,19 +96,7 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
     return winner, ranking
 
 
-# def trace_envoi_paniere(nameparts: list) -> None:
-#     timestamp = [datetime.now().strftime("%Y-%m-%d %H:%M")]
-#     timestamp += nameparts
-#     line = " ".join(timestamp)
-#     logfile = LOG_DIR / "envois_paniere.log"
-#     try:
-#         with open(logfile, "a") as f:
-#             f.write(line)
-#             f.write("\n")
-#     except IOError as e:
-#         logging.error(f"{logfile} inaccessible")
-
-
+#####################################################################
 #####################################################################
 
 
@@ -172,8 +131,8 @@ db_params = {
 log_ident = setup_logger("ident", 'log/traces_ident.log')
 log_envoi = setup_logger("envoi", 'log/traces_envoi.log')
 
-    #### Identification des documents ################################
 
+#### Identification des documents ################################
 
 address_db = call_addressdb(db_params)
 
@@ -185,9 +144,10 @@ for pdf in PDF_DIR.iterdir():
 
     if not pdf.name.endswith(".pdf"):
         continue
-
-    log_ident.info(f"============{pdf.name}==================")
-    print(f"============{pdf.name}==================")
+    
+    banner = "======={}{}".format(pdf.name, "="*(60-len(pdf.name)))
+    log_ident.info(banner)
+    print(banner)
     
     image = pdf_to_image(pdf)
     candidates = ocr_extract_and_order_words(image)
@@ -204,11 +164,11 @@ for pdf in PDF_DIR.iterdir():
 
     code, nom, origine = winner
     timestamp = datetime.now().strftime("%Y%m%d")
-    log_ident.info(f"dossier proposé : {nom}, ({code})")
+    log_ident.info(f"dossier propose : {nom}, ({code})")
 
     shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
-    #### Envoi paniere ################################
+#### Envoi paniere ################################
 
 for pdf in IDENT_DIR.iterdir():
 
