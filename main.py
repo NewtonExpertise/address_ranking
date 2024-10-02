@@ -165,7 +165,7 @@ for pdf in PDF_DIR.iterdir():
         continue
 
     code, nom, origine = winner
-    timestamp = datetime.now().strftime("%Y%m%d")
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M-%f")
     log_ident.info(f"dossier propose : {nom}, ({code})")
 
     shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
@@ -182,6 +182,8 @@ for pdf in IDENT_DIR.iterdir():
     parts = pdf.stem.split("_")
     if len(parts) == 4:
         code, nom, origine, stamp = parts
+    else:
+        continue
 
     isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
     # isuite.select_dossier("FORMACLI")
