@@ -161,7 +161,7 @@ for pdf in PDF_DIR.iterdir():
     
     if not winner:
         log_ident.warning(f"Aucune adresse ne correspond à {pdf.name}")
-        shutil.move(pdf, PDF_DIR / "echec" / pdf.name)
+        shutil.move(pdf, FAIL_DIR / pdf.name)
         continue
 
     code, nom, origine = winner
