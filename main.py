@@ -193,8 +193,7 @@ for pdf in IDENT_DIR.iterdir():
         log_envoi.error(f"Echec connexion {isuite.response}")
 
     with open(pdf, "rb") as f:
-        pass
-        # isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
+        isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
 
     if isuite.depot:
         log_envoi.info(f"{origine}-{nom}-{stamp}.pdf")
