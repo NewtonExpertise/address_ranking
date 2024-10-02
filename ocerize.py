@@ -14,6 +14,7 @@ def ocr_extract_and_order_words(image: Image) -> list:
     mots dans l'espce de l'image (coord: x, y)
     Pour fonctionner il faut que tesseract soit déjà installé sur
     le poste : https://tesseract-ocr.github.io/tessdoc/Installation.html
+    Download : https://objects.githubusercontent.com/github-production-release-asset-2e65be/47605084/9c763d61-6460-41e1-945c-eb0e6ef09a95?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20241001%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241001T165826Z&X-Amz-Expires=300&X-Amz-Signature=aad170b026fc8986bb8077137bd19f794e7360da1ade550adfe914a6c8b6e827&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Dtesseract-ocr-w64-setup-5.4.0.20240606.exe&response-content-type=application%2Foctet-stream
 
     Parameters
     - image : PNG convertit au format PIL/Image

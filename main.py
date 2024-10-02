@@ -116,6 +116,8 @@ if not LOG_DIR.is_dir():
     LOG_DIR.mkdir(parents=True)
 if not SENT_DIR.is_dir():
     SENT_DIR.mkdir(parents=True)
+if not FAIL_DIR.is_dir():
+    FAIL_DIR.mkdir(parents=True)
 
 IS_USR = config['ISUITE']['USERNAME']
 IS_PWD = config['ISUITE']['PASSWORD']
@@ -182,7 +184,8 @@ for pdf in IDENT_DIR.iterdir():
         code, nom, origine, stamp = parts
 
     isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
-    isuite.select_dossier("FORMACLI")
+    # isuite.select_dossier("FORMACLI")
+    isuite.select_dossier(code)
 
     if not isuite.select:
         log_envoi.error(f"Echec connexion {isuite.response}")
