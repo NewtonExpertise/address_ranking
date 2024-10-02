@@ -201,7 +201,6 @@ for pdf in IDENT_DIR.iterdir():
         shutil.move(pdf, SENT_DIR / pdf.name)
     else:
         log_envoi.error(f"Echec envoi panière : {pdf.name}")
-        log_envoi.error()
         shutil.move(pdf, FAIL_DIR / pdf.name)
 
 
