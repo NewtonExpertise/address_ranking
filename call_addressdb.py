@@ -1,4 +1,5 @@
 import psycopg2
+import logging
 
 
 def call_addressdb(params: dict) -> list:
@@ -16,8 +17,11 @@ def call_addressdb(params: dict) -> list:
     """
 
     result = []
-
-    conx = psycopg2.connect(**params)
+    try:
+        conx = psycopg2.connect(**params)
+    except psycopg2.OperationalError as e:
+        logging.critical(f"bdd adresses inaccessible : {e}")
+        return result
     cursor = conx.cursor()
     sql = "SELECT * from destinations ORDER BY nom "
     cursor.execute(sql)

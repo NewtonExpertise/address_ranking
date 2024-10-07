@@ -1,4 +1,3 @@
-import os
 import math
 import logging
 import configparser
@@ -11,16 +10,13 @@ from isuite_request import ISuiteRequest
 from call_addressdb import call_addressdb
 
 
-formatter = logging.Formatter('%(asctime)s-%(module)s \t %(levelname)s - %(message)s')
-def setup_logger(name, log_file, level=logging.INFO):
-    """To setup as many loggers as you want"""
-    handler = logging.FileHandler(log_file, mode="w")        
-    handler.setFormatter(formatter)
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-
-    return logger
+logging.basicConfig(
+    filename= f"./log/traces.log",
+    filemode="a",
+    format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
+    level="INFO",
+    encoding="cp1252"
+)
 
 
 def calc_distance(coord1, coord2):
@@ -99,43 +95,45 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
 #####################################################################
 #####################################################################
 
-
 config = configparser.ConfigParser()
-config.read("config.ini", encoding='ansi')
+try:
+    config.read("config.ini", encoding='ansi')
+    logging.info("")
+    logging.info("---- START -----")
+    logging.info("")
+    logging.info("chargement config.ini OK")
+except:
+    logging.critical(f"Config.ini absent !")
+    exit()
+    
 PDF_DIR   = Path(config['PATHS']['PDF_DIR'])
 IDENT_DIR = Path(config['PATHS']['IDENT_DIR'])
 FAIL_DIR  = Path(config['PATHS']['FAIL_DIR'])
-LOG_DIR   = Path(config['PATHS']['LOG_DIR'])
 SENT_DIR  = Path(config['PATHS']['SENT_DIR'])
-
-TESTMODE = False
-if (config['DEFAULT']['TESTMODE']) == 1:
-    TESTMODE = True
-
-if not PDF_DIR.is_dir():
-    PDF_DIR.mkdir(parents=True)
-if not IDENT_DIR.is_dir():
-    IDENT_DIR.mkdir(parents=True)
-if not LOG_DIR.is_dir():
-    LOG_DIR.mkdir(parents=True)
-if not SENT_DIR.is_dir():
-    SENT_DIR.mkdir(parents=True)
-if not FAIL_DIR.is_dir():
-    FAIL_DIR.mkdir(parents=True)
-
-IS_USR = config['ISUITE']['USERNAME']
-IS_PWD = config['ISUITE']['PASSWORD']
-IS_URL = config['ISUITE']['URL']
+IS_USR    = config['ISUITE']['USERNAME']
+IS_PWD    = config['ISUITE']['PASSWORD']
+IS_URL    = config['ISUITE']['URL']
 
 db_params = {
-    "host" : config['ADRESSESDB']['HOST'],
+    "host" :   config['ADRESSESDB']['HOST'],
     "dbname" : config['ADRESSESDB']['DBNAME'],
-    "user" : config['ADRESSESDB']['USER'],
+    "user" :   config['ADRESSESDB']['USER'],
     "password" : config['ADRESSESDB']['password']
 }
 
-log_ident = setup_logger("ident", 'log/traces_ident.log')
-log_envoi = setup_logger("envoi", 'log/traces_envoi.log')
+TESTMODE = False
+if (config['DEFAULT']['TESTMODE']) == "1":
+    TESTMODE = True
+    logging.warning("TESTMODE est actif !")
+
+for i, target in enumerate((PDF_DIR, IDENT_DIR, FAIL_DIR, SENT_DIR)):
+    logstr = f"{i}. Chemin : {str(target)}"
+    if not target.is_dir():
+        target.mkdir(parents=True)
+        logstr += " (CREE)"
+    else:
+        logstr += " (OK)"
+    logging.info(logstr)
 
 
 #### Identification des documents ################################
@@ -143,8 +141,10 @@ log_envoi = setup_logger("envoi", 'log/traces_envoi.log')
 address_db = call_addressdb(db_params)
 
 if not address_db:
-    log_ident.critical("Base de données adresses vide !")
+    logging.critical("Base de données adresses vide !")
     exit()
+else:
+    logging.info(f"nombres d'adresses chargees : {len(address_db)}")
 
 for pdf in PDF_DIR.iterdir():
 
@@ -152,7 +152,7 @@ for pdf in PDF_DIR.iterdir():
         continue
     
     banner = "======={}{}".format(pdf.name, "="*(60-len(pdf.name)))
-    log_ident.info(banner)
+    logging.info(banner)
     print(banner)
     
     image = pdf_to_image(pdf)
@@ -161,20 +161,18 @@ for pdf in PDF_DIR.iterdir():
     winner, ranking = propose_winner(candidates, address_db)
     
     for i, rank in enumerate(ranking, start=1):
-        log_ident.info(f"{i}, {rank}")
+        logging.info(f"{i}, {rank}")
     
     if not winner:
-        log_ident.warning(f"Aucune adresse ne correspond à {pdf.name}")
+        logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
         shutil.move(pdf, FAIL_DIR / pdf.name)
         continue
 
     code, nom, origine = winner
     timestamp = datetime.now().strftime("%Y%m%d-%H%M-%f")
-    log_ident.info(f"dossier propose : {nom}, ({code})")
+    logging.info(f"dossier propose : {nom}, ({code})")
 
-    if TESTMODE:
-        shutil.copy2(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
-    else:
+    if not TESTMODE:
         shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
 #### Envoi paniere ################################
@@ -197,13 +195,13 @@ for pdf in IDENT_DIR.iterdir():
         isuite.select_dossier(code)
 
         if not isuite.select:
-            log_envoi.error(f"Echec connexion {isuite.response}")
+            logging.error(f"Echec connexion {isuite.response}")
         with open(pdf, "rb") as f:
             isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
 
         if isuite.depot:
-            log_envoi.info(f"{origine}-{nom}-{stamp}.pdf")
+            logging.info(f"{origine}-{nom}-{stamp}.pdf")
             shutil.move(pdf, SENT_DIR / pdf.name)
         else:
-            log_envoi.error(f"Echec envoi panière : {pdf.name}")
+            logging.error(f"Echec envoi panière : {pdf.name}")
             shutil.move(pdf, FAIL_DIR / pdf.name)
