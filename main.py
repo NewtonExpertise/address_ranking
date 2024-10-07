@@ -102,11 +102,15 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
 
 config = configparser.ConfigParser()
 config.read("config.ini", encoding='ansi')
-PDF_DIR = Path(config['PATHS']['PDF_DIR'])
+PDF_DIR   = Path(config['PATHS']['PDF_DIR'])
 IDENT_DIR = Path(config['PATHS']['IDENT_DIR'])
-FAIL_DIR = Path(config['PATHS']['FAIL_DIR'])
-LOG_DIR = Path(config['PATHS']['LOG_DIR'])
-SENT_DIR = Path(config['PATHS']['SENT_DIR'])
+FAIL_DIR  = Path(config['PATHS']['FAIL_DIR'])
+LOG_DIR   = Path(config['PATHS']['LOG_DIR'])
+SENT_DIR  = Path(config['PATHS']['SENT_DIR'])
+
+TESTMODE = False
+if (config['DEFAULT']['TESTMODE']) == 1:
+    TESTMODE = True
 
 if not PDF_DIR.is_dir():
     PDF_DIR.mkdir(parents=True)
@@ -168,7 +172,10 @@ for pdf in PDF_DIR.iterdir():
     timestamp = datetime.now().strftime("%Y%m%d-%H%M-%f")
     log_ident.info(f"dossier propose : {nom}, ({code})")
 
-    shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
+    if TESTMODE:
+        shutil.copy2(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
+    else:
+        shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
 #### Envoi paniere ################################
 
@@ -185,21 +192,18 @@ for pdf in IDENT_DIR.iterdir():
     else:
         continue
 
-    isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
-    # isuite.select_dossier("FORMACLI")
-    isuite.select_dossier(code)
+    if not TESTMODE:
+        isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
+        isuite.select_dossier(code)
 
-    if not isuite.select:
-        log_envoi.error(f"Echec connexion {isuite.response}")
+        if not isuite.select:
+            log_envoi.error(f"Echec connexion {isuite.response}")
+        with open(pdf, "rb") as f:
+            isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
 
-    with open(pdf, "rb") as f:
-        isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
-
-    if isuite.depot:
-        log_envoi.info(f"{origine}-{nom}-{stamp}.pdf")
-        shutil.move(pdf, SENT_DIR / pdf.name)
-    else:
-        log_envoi.error(f"Echec envoi panière : {pdf.name}")
-        shutil.move(pdf, FAIL_DIR / pdf.name)
-
-
+        if isuite.depot:
+            log_envoi.info(f"{origine}-{nom}-{stamp}.pdf")
+            shutil.move(pdf, SENT_DIR / pdf.name)
+        else:
+            log_envoi.error(f"Echec envoi panière : {pdf.name}")
+            shutil.move(pdf, FAIL_DIR / pdf.name)
