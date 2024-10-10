@@ -41,7 +41,7 @@ def ocr_extract_and_order_words(image: Image) -> list:
             continue
 
         wordlist.append((
-                data["text"][i],
+                data["text"][i].strip(),
                 data["left"][i],
                 data["top"][i]
         ))

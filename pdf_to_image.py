@@ -57,5 +57,5 @@ def pdf_to_image(pdf_path: Path, keep_png: bool = False) -> Image:
 
 if __name__ == "__main__":
 
-    pdf1 = Path(r"C:\Dev\scraping_exp\paniere\001385_PILONS_EDENRED_20241010-1200-944150.pdf")
+    pdf1 = Path(r"\\quito\scraping\_paniere\echecs\Facture_Z24MA05072743.pdf")
     img = pdf_to_image(pdf1, keep_png=True)
