@@ -9,9 +9,9 @@ from ocerize import ocr_extract_and_order_words
 from isuite_request import ISuiteRequest
 from call_addressdb import call_addressdb
 
-
+timestamp = datetime.now().strftime("%Y-%m-%d %H%M")
 logging.basicConfig(
-    filename= f"./log/traces.log",
+    filename= f"./log/traces {timestamp}.log",
     filemode="a",
     format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
     level="INFO",
@@ -61,7 +61,7 @@ def calc_match_ratio(candidates: list, trial: list, drift: int = 0) -> float:
                     matches.append((can_w, can_x, can_y))
     if matches:
         ratio = len(matches) / len(trial)
-    return ratio
+    return ratio, matches
 
 def propose_winner(candidate_words: list, address_db: list) -> tuple :
     """
@@ -79,15 +79,17 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
     """
     ranking = []
     winner = None
+    matching_words = []
 
     for (code, nom, origine), test_words in address_db:
-        ratio = calc_match_ratio(candidate_words, test_words, drift=10)
+        ratio, matches = calc_match_ratio(candidate_words, test_words, drift=10)
         if ratio >= 0.2:
-            ranking.append((ratio, code, nom, origine))
+            ranking.append((ratio, code, nom, origine, matches))
     if ranking:
         ranking = sorted(ranking, reverse=True)[:5] 
         if ranking[0][0] >= 0.9:
             winner = ranking[0][1:]
+
 
     return winner, ranking
 
@@ -168,9 +170,10 @@ for pdf in PDF_DIR.iterdir():
         shutil.move(pdf, FAIL_DIR / pdf.name)
         continue
 
-    code, nom, origine = winner
+    code, nom, origine, words = winner
     timestamp = datetime.now().strftime("%Y%m%d-%H%M-%f")
     logging.info(f"dossier propose : {nom}, ({code})")
+    print(words)
 
     if not TESTMODE:
         shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
@@ -204,4 +207,3 @@ for pdf in IDENT_DIR.iterdir():
             shutil.move(pdf, SENT_DIR / pdf.name)
         else:
             logging.error(f"Echec envoi panière : {pdf.name}")
-            shutil.move(pdf, FAIL_DIR / pdf.name)

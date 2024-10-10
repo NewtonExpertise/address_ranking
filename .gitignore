@@ -167,3 +167,4 @@ pdftopng.exe
 config.ini
 xpdf-t1fonts/
 .old
+temp.png

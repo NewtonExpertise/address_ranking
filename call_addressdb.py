@@ -32,3 +32,17 @@ def call_addressdb(params: dict) -> list:
         result.append([(code, nom, origine), cursor.fetchall()])
     
     return result
+
+# if __name__ == "__main__":
+
+#     import configparser
+#     config = configparser.ConfigParser()
+#     config.read("config.ini", encoding='ansi')
+#     db_params = {
+#     "host" :   config['ADRESSESDB']['HOST'],
+#     "dbname" : config['ADRESSESDB']['DBNAME'],
+#     "user" :   config['ADRESSESDB']['USER'],
+#     "password" : config['ADRESSESDB']['password']
+#     }
+#     rows = call_addressdb(params=db_params)
+#     [print(x) for x in rows]

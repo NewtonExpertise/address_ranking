@@ -50,3 +50,12 @@ def ocr_extract_and_order_words(image: Image) -> list:
 
     return wordlist
 
+if __name__ == "__main__":
+
+    png = r"C:\Dev\address_ranking\temp.png"
+    img = Image.open(png)
+    words = ocr_extract_and_order_words(img)
+    [print(w) for w in words]
+
+
+
