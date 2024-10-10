@@ -79,7 +79,6 @@ def propose_winner(candidate_words: list, address_db: list) -> tuple :
     """
     ranking = []
     winner = None
-    matching_words = []
 
     for (code, nom, origine), test_words in address_db:
         ratio, matches = calc_match_ratio(candidate_words, test_words, drift=10)
@@ -165,9 +164,10 @@ for pdf in PDF_DIR.iterdir():
     for i, rank in enumerate(ranking, start=1):
         logging.info(f"{i}, {rank}")
     
-    if not winner and not TESTMODE:
-        logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
-        shutil.move(pdf, FAIL_DIR / pdf.name)
+    if not winner:
+        logging.warning(f"Aucune adresse ne correspond a {pdf.name}")
+        if not TESTMODE:
+            shutil.move(pdf, FAIL_DIR / pdf.name)
         continue
 
     code, nom, origine, words = winner
