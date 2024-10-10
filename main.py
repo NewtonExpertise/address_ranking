@@ -9,7 +9,7 @@ from ocerize import ocr_extract_and_order_words
 from isuite_request import ISuiteRequest
 from call_addressdb import call_addressdb
 
-timestamp = datetime.now().strftime("%Y-%m-%d %H%M")
+timestamp = datetime.now().strftime("%Y-%m-%d")
 logging.basicConfig(
     filename= f"./log/traces {timestamp}.log",
     filemode="a",
@@ -165,7 +165,7 @@ for pdf in PDF_DIR.iterdir():
     for i, rank in enumerate(ranking, start=1):
         logging.info(f"{i}, {rank}")
     
-    if not winner:
+    if not winner and not TESTMODE:
         logging.warning(f"Aucune adresse ne correspond à {pdf.name}")
         shutil.move(pdf, FAIL_DIR / pdf.name)
         continue
