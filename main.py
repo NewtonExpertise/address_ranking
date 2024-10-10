@@ -55,7 +55,7 @@ def calc_match_ratio(candidates: list, trial: list, drift: int = 0) -> float:
     matches = []
     for can_w, can_x, can_y in candidates:
         for tri_w, tri_x, tri_y in trial:
-            if can_w == tri_w:
+            if can_w.lower() == tri_w.lower():
                 distance = calc_distance((can_x, can_y), (tri_x, tri_y))
                 if distance <= drift:
                     matches.append((can_w, can_x, can_y))
