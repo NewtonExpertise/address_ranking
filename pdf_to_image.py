@@ -57,5 +57,5 @@ def pdf_to_image(pdf_path: Path, keep_png: bool = False) -> Image:
 
 if __name__ == "__main__":
 
-    pdf1 = Path(r"C:\Dev\scraping_exp\paniere\Facture_Z24MA04884378.pdf")
+    pdf1 = Path(r"\\quito\scraping\_paniere\Bioburger_Paris__Batignolles__20241021_invoice.pdf")
     img = pdf_to_image(pdf1, keep_png=True)
