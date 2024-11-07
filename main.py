@@ -157,7 +157,7 @@ for pdf in PDF_DIR.iterdir():
     logging.info(banner)
     print(banner)
     
-    image = pdf_to_image(pdf)
+    image = pdf_to_image(pdf, keep_png=TESTMODE)
     candidates = ocr_extract_and_order_words(image)
     
     winner, ranking = propose_winner(candidates, address_db)
