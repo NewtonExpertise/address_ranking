@@ -194,12 +194,6 @@ for pdf in IDENT_DIR.iterdir():
     else:
         continue
 
-    # Exception pour dégager les dossiers affectés au code PASCLIENT
-    # (resto accessible depuis le portail mais pas client du cabinet)
-    if code == "PASCLIENT":
-        os.remove(str(pdf))
-        logging.warning(f"suppression de {pdf.name}")
-
     if not TESTMODE:
         isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
         isuite.select_dossier(code)
