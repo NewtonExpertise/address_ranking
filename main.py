@@ -10,11 +10,11 @@ from ocerize import ocr_extract_and_order_words
 from isuite_request import ISuiteRequest
 from call_addressdb import call_addressdb
 
-timestamp = datetime.now().strftime("%Y-%m-%d")
+timestamp = datetime.now().strftime("%Y-%m-%d %H%M")
 logging.basicConfig(
     filename= f"./log/traces {timestamp}.log",
     filemode="a",
-    format='%(asctime)s-%(module)s \t %(levelname)s - %(message)s',
+    format='%(asctime)s %(module)10s %(funcName)15s %(levelname)7s : %(message)s',
     level="INFO",
     encoding="cp1252"
 )
