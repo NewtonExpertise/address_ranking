@@ -182,7 +182,6 @@ for pdf in PDF_DIR.iterdir():
 
 for pdf in IDENT_DIR.iterdir():
 
-
     if not pdf.suffix == ".pdf":
         continue
 
