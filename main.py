@@ -176,7 +176,6 @@ for pdf in PDF_DIR.iterdir():
     logging.info(f"dossier propose : {nom}, ({code})")
     print(words)
 
-    # if not TESTMODE:
     shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
 #### Envoi paniere ################################
