@@ -176,14 +176,13 @@ for pdf in PDF_DIR.iterdir():
     logging.info(f"dossier propose : {nom}, ({code})")
     print(words)
 
-    if not TESTMODE:
-        shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
+    # if not TESTMODE:
+    shutil.move(pdf, IDENT_DIR / f"{code}_{nom}_{origine}_{timestamp}.pdf")
 
 #### Envoi paniere ################################
 
 for pdf in IDENT_DIR.iterdir():
 
-    print(f"Envoi paniere de {pdf.name}")
 
     if not pdf.suffix == ".pdf":
         continue
@@ -198,7 +197,8 @@ for pdf in IDENT_DIR.iterdir():
     # (resto accessible depuis le portail mais pas client du cabinet)
     if code == "PASCLIENT":
         os.remove(str(pdf))
-        logging.warning(f"suppression de {pdf.name}")
+        logging.warning(f"suppression de non-client : {pdf.name}")
+        continue
 
     if not TESTMODE:
         isuite = ISuiteRequest(IS_URL, IS_USR, IS_PWD)
@@ -210,7 +210,7 @@ for pdf in IDENT_DIR.iterdir():
             isuite.push_paniere(f, f"{origine}-{nom}-{stamp}.pdf")
 
         if isuite.depot:
-            logging.info(f"{origine}-{nom}-{stamp}.pdf")
+            logging.info(f"dépôt de {origine}-{nom}-{stamp}.pdf")
             shutil.move(pdf, SENT_DIR / pdf.name)
         else:
             logging.error(f"Echec envoi panière : {pdf.name}")
